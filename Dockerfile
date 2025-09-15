@@ -50,4 +50,4 @@ COPY --from=backend /app/bin/app /app/app
 EXPOSE 8080
 
 USER app
-ENTRYPOINT ["/app/app"]
+ENTRYPOINT ["/app/app", "serve"]

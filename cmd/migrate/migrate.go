@@ -85,6 +85,7 @@ func newMigrator() (*migris.Migrate, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	migrate, err := migris.New("pgx", migris.WithMigrationDir(migrationDir), migris.WithDB(db))
 	if err != nil {
 		return nil, err
