@@ -1,0 +1,50 @@
+# ---- Go ----
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+tmp/
+
+# Go coverage
+*.cover
+*.coverprofile
+coverage.txt
+
+# Environment files
+.env
+
+# IDE & editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# ---- Node / Vue ----
+ui/node_modules/
+ui/.vite/
+ui/.env.local
+ui/.env.development.local
+ui/.env.test.local
+ui/.env.production.local
+
+# Lock files (optional – keep if you want deterministic installs)
+# ui/pnpm-lock.yaml
+# ui/package-lock.json
+# ui/yarn.lock
+
+# ---- Build artifacts ----
+web/dist/
+dist/
+.tmp/
+.cache/
+.DS_Store
+
+# ---- Docker ----
+*.tar
