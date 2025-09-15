@@ -30,6 +30,8 @@ type RouteConfig struct {
 }
 
 func Register(rc RouteConfig) {
+	rc.Echo.GET("/health", rc.HealthCheckHandler.HealthCheck)
+
 	rc.registerAPI()
 	rc.registerWeb()
 }

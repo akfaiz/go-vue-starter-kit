@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"path/filepath"
@@ -43,7 +42,7 @@ type AppConfig struct {
 
 func (h *SPAHandler) Env(c echo.Context) error {
 	appConfig := AppConfig{
-		ApiBaseUrl: fmt.Sprintf("http://%s:%d/api", "localhost", h.cfg.Server.Port),
+		ApiBaseUrl: h.cfg.App.ApiBaseURL,
 		Env:        h.cfg.App.Env,
 	}
 	b, _ := json.Marshal(appConfig)

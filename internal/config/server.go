@@ -8,6 +8,6 @@ type Server struct {
 
 func loadServerConfig() Server {
 	return Server{
-		Port: env.GetInt("SERVER_PORT", 3000),
+		Port: env.GetInt("SERVER_PORT", 8080),
 	}
 }
