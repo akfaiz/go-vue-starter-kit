@@ -3,6 +3,8 @@ import { changePassword } from '@/services/profile'
 import { AppError } from '@/utils/errors'
 
 const isPasswordVisible = ref(false)
+const loading = ref(false)
+const validationErrors = ref<Record<string, string>>({})
 
 const form = ref({
   current_password: '',
@@ -10,16 +12,16 @@ const form = ref({
   new_password_confirmation: '',
 })
 
-const validationErrors = ref<Record<string, string>>({})
-
 const handleSubmit = async () => {
   try {
+    loading.value = true
     validationErrors.value = {}
     await changePassword({
       current_password: form.value.current_password,
       new_password: form.value.new_password,
       new_password_confirmation: form.value.new_password_confirmation,
     })
+    loading.value = false
 
     // Optionally, you can add a success message or redirect the user
     form.value.current_password = ''
@@ -27,6 +29,7 @@ const handleSubmit = async () => {
     form.value.new_password_confirmation = ''
   }
   catch (e) {
+    loading.value = false
     if (e instanceof AppError && e.isValidation)
       validationErrors.value = e.fieldMap || {}
     else
@@ -100,7 +103,10 @@ const handleSubmit = async () => {
 
           <!-- 👉 Action Buttons -->
           <VCardText class="d-flex flex-wrap gap-4">
-            <VBtn type="submit">
+            <VBtn
+              type="submit"
+              :loading="loading"
+            >
               Save changes
             </VBtn>
 

@@ -11,11 +11,12 @@ const form = ref({
 })
 
 const isPasswordVisible = ref(false)
-
+const loading = ref(false)
 const validationErrors = ref<Record<string, string>>({})
 
 const handleSubmit = async () => {
   try {
+    loading.value = true
     validationErrors.value = {}
     await register({
       name: form.value.name,
@@ -23,10 +24,12 @@ const handleSubmit = async () => {
       password: form.value.password,
       password_confirmation: form.value.password_confirmation,
     })
+    loading.value = false
 
     window.location.href = '/login'
   }
   catch (e) {
+    loading.value = false
     if (e instanceof AppError && e.isValidation)
       validationErrors.value = e.fieldMap || {}
   }
@@ -122,6 +125,7 @@ const handleSubmit = async () => {
                   block
                   type="submit"
                   class="mt-6"
+                  :loading="loading"
                 >
                   Sign up
                 </VBtn>

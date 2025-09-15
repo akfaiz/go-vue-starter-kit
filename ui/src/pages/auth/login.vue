@@ -3,6 +3,8 @@ import { useAuthStore } from '@/stores/auth'
 import { AppError } from '@/utils/errors'
 import logo from '@images/logo.svg?raw'
 
+const auth = useAuthStore()
+
 const form = ref({
   email: '',
   password: '',
@@ -10,22 +12,23 @@ const form = ref({
 })
 
 const isPasswordVisible = ref(false)
-
 const validationErrors = ref<Record<string, string>>({})
-
-const auth = useAuthStore()
+const loading = ref(false)
 
 const handleSubmit = async () => {
   try {
+    loading.value = true
     validationErrors.value = {}
     await auth.login({
       email: form.value.email,
       password: form.value.password,
     })
+    loading.value = false
 
     window.location.href = '/dashboard'
   }
   catch (e) {
+    loading.value = false
     if (e instanceof AppError && e.isValidation)
       validationErrors.value = e.fieldMap || {}
     else
@@ -114,6 +117,7 @@ const handleSubmit = async () => {
                 <VBtn
                   block
                   type="submit"
+                  :loading="loading"
                 >
                   Login
                 </VBtn>

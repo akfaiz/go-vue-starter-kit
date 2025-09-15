@@ -14,7 +14,6 @@ const alert = ref({
 })
 
 const loading = ref(false)
-
 const validationErrors = ref<Record<string, string>>({})
 
 const handleSubmit = async () => {
