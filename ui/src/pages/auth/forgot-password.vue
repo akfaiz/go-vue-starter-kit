@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { sendPasswordResetEmail } from '@/services/auth'
+import type { FieldErrors } from '@/utils/errors'
 import { AppError } from '@/utils/errors'
 import logo from '@images/logo.svg?raw'
 
@@ -9,12 +10,12 @@ const form = ref({
 
 const alert = ref({
   type: 'success' as 'success' | 'error',
-  message: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
+  message: '',
   show: false,
 })
 
 const loading = ref(false)
-const validationErrors = ref<Record<string, string>>({})
+const validationErrors = ref<FieldErrors>({})
 
 const handleSubmit = async () => {
   try {
@@ -35,7 +36,7 @@ const handleSubmit = async () => {
     loading.value = false
     if (e instanceof AppError) {
       if (e.isValidation) {
-        validationErrors.value = e.fieldMap || {}
+        validationErrors.value = e.fieldErrors || {}
       }
       else {
         alert.value = {
@@ -77,7 +78,7 @@ const handleSubmit = async () => {
           </RouterLink>
         </VCardItem>
 
-        <VCardText>
+        <VCardText class="text-center">
           <h4 class="text-h5 mb-1">
             Forgot password
           </h4>
@@ -111,6 +112,8 @@ const handleSubmit = async () => {
                   :error-messages="validationErrors.email"
                 />
               </VCol>
+
+              <!-- password -->
 
               <VCol cols="12">
                 <VBtn

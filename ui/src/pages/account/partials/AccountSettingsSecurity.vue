@@ -1,12 +1,14 @@
 <script lang="ts" setup>
+import type { ChangePasswordRequest } from '@/services/profile'
 import { changePassword } from '@/services/profile'
+import type { FieldErrors } from '@/utils/errors'
 import { AppError } from '@/utils/errors'
 
 const isPasswordVisible = ref(false)
 const loading = ref(false)
-const validationErrors = ref<Record<string, string>>({})
+const validationErrors = ref<FieldErrors>({})
 
-const form = ref({
+const form = reactive<ChangePasswordRequest>({
   current_password: '',
   new_password: '',
   new_password_confirmation: '',
@@ -16,25 +18,28 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     validationErrors.value = {}
-    await changePassword({
-      current_password: form.value.current_password,
-      new_password: form.value.new_password,
-      new_password_confirmation: form.value.new_password_confirmation,
-    })
+    await changePassword(form)
     loading.value = false
 
     // Optionally, you can add a success message or redirect the user
-    form.value.current_password = ''
-    form.value.new_password = ''
-    form.value.new_password_confirmation = ''
+    form.current_password = ''
+    form.new_password = ''
+    form.new_password_confirmation = ''
   }
   catch (e) {
     loading.value = false
     if (e instanceof AppError && e.isValidation)
-      validationErrors.value = e.fieldMap || {}
+      validationErrors.value = e.fieldErrors || {}
     else
       throw e
   }
+}
+
+const handleReset = () => {
+  form.current_password = ''
+  form.new_password = ''
+  form.new_password_confirmation = ''
+  validationErrors.value = {}
 }
 </script>
 
@@ -42,7 +47,10 @@ const handleSubmit = async () => {
   <VRow>
     <!-- SECTION: Change Password -->
     <VCol cols="12">
-      <VCard title="Change Password">
+      <VCard
+        title="Update Password"
+        subtitle="Ensure your account is using a long, random password to stay secure."
+      >
         <VForm @submit.prevent="handleSubmit">
           <VCardText>
             <!-- 👉 Current Password -->
@@ -82,7 +90,8 @@ const handleSubmit = async () => {
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
               </VCol>
-
+            </VRow>
+            <VRow>
               <VCol
                 cols="12"
                 md="6"
@@ -107,13 +116,13 @@ const handleSubmit = async () => {
               type="submit"
               :loading="loading"
             >
-              Save changes
+              Save
             </VBtn>
 
             <VBtn
-              type="reset"
               color="secondary"
               variant="tonal"
+              @click="handleReset"
             >
               Reset
             </VBtn>

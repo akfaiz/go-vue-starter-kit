@@ -3,11 +3,12 @@ import { useAuthStore } from '@/stores/auth'
 import { getInitials } from '@/utils/user'
 
 const auth = useAuthStore()
+const router = useRouter()
 const { user } = storeToRefs(auth)
 
 const handleLogout = async () => {
   await auth.logout()
-  window.location.href = '/login'
+  router.replace({ path: '/login' })
 }
 </script>
 

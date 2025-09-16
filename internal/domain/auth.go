@@ -7,14 +7,14 @@ import (
 )
 
 type AuthService interface {
-	Register(ctx context.Context, user *User) error
+	Register(ctx context.Context, user *User) (*PairToken, error)
 	Login(ctx context.Context, email, password string) (*PairToken, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*PairToken, error)
 	SendForgotPasswordEmail(ctx context.Context, email string) error
 	ValidateResetPassword(ctx context.Context, token, email string) error
 	ResetPassword(ctx context.Context, token, email, newPassword string) error
 	SendVerificationEmail(ctx context.Context, email string) error
-	VerifyEmail(ctx context.Context, token string, email string) error
+	VerifyEmail(ctx context.Context, token string, userID int64) error
 }
 
 type PasswordHasher interface {

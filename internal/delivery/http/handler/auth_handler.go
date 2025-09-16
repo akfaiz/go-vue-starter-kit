@@ -49,11 +49,12 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	user := req.ToDomain()
 	ctx := c.Request().Context()
-	if err := h.authService.Register(ctx, user); err != nil {
+	token, err := h.authService.Register(ctx, user)
+	if err != nil {
 		return err
 	}
 
-	res := dto.NewMessage(201, "User registered successfully")
+	res := dto.NewResponse(201, dto.NewTokenResponse(token), "User registered successfully")
 	return c.JSON(res.Status, res)
 }
 
@@ -122,7 +123,7 @@ func (h *AuthHandler) ResetPassword(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	if err := h.authService.ResetPassword(ctx, req.Token, req.Email, req.NewPassword); err != nil {
+	if err := h.authService.ResetPassword(ctx, req.Token, req.Email, req.Password); err != nil {
 		return err
 	}
 
@@ -152,9 +153,16 @@ func (h *AuthHandler) VerifyEmail(c echo.Context) error {
 	if err := c.Validate(&req); err != nil {
 		return err
 	}
+	user := auth.GetUser(c)
+	if user == nil {
+		return errdefs.ErrUnauthorized()
+	}
+	if user.ID != req.UserID {
+		return errdefs.ErrUnauthorized()
+	}
 
 	ctx := c.Request().Context()
-	if err := h.authService.VerifyEmail(ctx, req.Token, req.Email); err != nil {
+	if err := h.authService.VerifyEmail(ctx, req.Token, req.UserID); err != nil {
 		return err
 	}
 
