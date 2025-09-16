@@ -1,12 +1,43 @@
 version: '3.8'
 
 services:
+  govue_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: govue_app
+    ports:
+      - "8080:8080"
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
+      DB_HOST: govue_db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      SERVER_PORT: ${SERVER_PORT}
+    depends_on:
+      - govue_db
+
   govue_db:
     image: postgres:16-alpine
     container_name: govue_db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: govue
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - govue_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  govue_db_data:

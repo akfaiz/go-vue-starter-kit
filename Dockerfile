@@ -36,7 +36,7 @@ ARG BUILD_TIME=unknown
 ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -ldflags="-s -w -X main.Commit=${GIT_COMMIT} -X main.BuildTime=${BUILD_TIME}" -o /app/bin/app .
+    go build -ldflags="-s -w -X main.Commit=${GIT_COMMIT} -X main.BuildTime=${BUILD_TIME}" -o /app/bin/govue .
 
 # ---------------------------------------
 # 3) Runtime (minimal)
@@ -45,9 +45,9 @@ FROM alpine:3.20 AS runtime
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
-COPY --from=backend /app/bin/app /app/app
+COPY --from=backend /app/bin/govue /app/govue
 
 EXPOSE 8080
 
 USER app
-ENTRYPOINT ["/app/app", "serve"]
+ENTRYPOINT ["/app/govue", "serve"]

@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-APP := yourapp
+APP := govue
 BIN := bin/$(APP)
 
 # Default env (override with `make run DEV=1`)
