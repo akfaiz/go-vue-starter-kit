@@ -41,6 +41,17 @@ jobs:
         run: |
           go version
           go env
+      
+      - name: Install Tools
+        run: |
+          set -euo pipefail
+          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      
+      - name: Lint code
+        run: |
+          set -euo pipefail
+          golangci-lint run ./...
 
       - name: Run tests (Makefile if available)
         run: |
