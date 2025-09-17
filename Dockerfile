@@ -1,7 +1,7 @@
 # ---------------------------------------
 # 1) Frontend build (Vue/Vite with PNPM)
 # ---------------------------------------
-FROM node:20-alpine AS frontend
+FROM node:22-alpine AS frontend
 RUN corepack enable && apk add --no-cache git
 WORKDIR /app/ui
 

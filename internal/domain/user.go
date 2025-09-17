@@ -1,3 +1,4 @@
+//go:generate mockgen -source=user.go -destination=../mocks/user_mock.go -package=mocks
 package domain
 
 import (
@@ -38,6 +39,10 @@ type UserUpdate struct {
 	Email           omit.Val[string]
 	Password        omit.Val[string]
 	EmailVerifiedAt omitnull.Val[time.Time]
+}
+
+func (uu *UserUpdate) IsEmpty() bool {
+	return uu.Name.IsUnset() && uu.Email.IsUnset() && uu.Password.IsUnset() && uu.EmailVerifiedAt.IsUnset()
 }
 
 func (u *User) IsVerified() bool {

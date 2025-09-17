@@ -14,9 +14,15 @@ import { promises as fs } from 'node:fs'
 import { dirname, join } from 'node:path'
 
 // Installation: npm install --save-dev @iconify/tools @iconify/utils @iconify/json @iconify/iconify
+import { fileURLToPath } from 'node:url'
 import { cleanupSVG, importDirectory, isEmptyColor, parseColors, runSVGO } from '@iconify/tools'
 import type { IconifyJSON } from '@iconify/types'
 import { getIcons, getIconsCSS, stringToIcon } from '@iconify/utils'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+const resolve = (id: string) => fileURLToPath(import.meta.resolve(id))
 
 /**
  * Script configuration
@@ -86,11 +92,11 @@ const sources: BundleScriptConfig = {
     // 'json/gg.json',
 
     // Iconify JSON file (@iconify/json is a package name, /json/ is directory where files are, then filename)
-    require.resolve('@iconify-json/bx/icons.json'),
-    require.resolve('@iconify-json/bxl/icons.json'),
-    require.resolve('@iconify-json/bxs/icons.json'),
+    resolve('@iconify-json/bx/icons.json'),
+    resolve('@iconify-json/bxl/icons.json'),
+    resolve('@iconify-json/bxs/icons.json'),
     {
-      filename: require.resolve('@iconify-json/mdi/icons.json'),
+      filename: resolve('@iconify-json/mdi/icons.json'),
       icons: [
         'close-circle',
         'language-javascript',
@@ -105,7 +111,7 @@ const sources: BundleScriptConfig = {
       ],
     },
     {
-      filename: require.resolve('@iconify-json/fa/icons.json'),
+      filename: resolve('@iconify-json/fa/icons.json'),
       icons: [
         'circle',
       ],
@@ -113,7 +119,7 @@ const sources: BundleScriptConfig = {
 
     // Custom file with only few icons
     // {
-    //   filename: require.resolve('@iconify-json/line-md/icons.json'),
+    //   filename: resolve('@iconify-json/line-md/icons.json'),
     //   icons: [
     //     'home-twotone-alt',
     //     'github',
@@ -156,7 +162,7 @@ const target = join(__dirname, 'icons.css')
     const organizedList = organizeIconsList(sources.icons)
 
     for (const prefix in organizedList) {
-      const filename = require.resolve(`@iconify/json/json/${prefix}.json`)
+      const filename = resolve(`@iconify/json/json/${prefix}.json`)
 
       sourcesJSON.push({
         filename,

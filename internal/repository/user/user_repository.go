@@ -87,7 +87,17 @@ func (r *repository) Update(ctx context.Context, id int64, data *domain.UserUpda
 	}
 	query = query.Set("updated_at = NOW()")
 	_, err := query.Exec(ctx)
-	return err
+	if err != nil {
+		var pgError pgdriver.Error
+		if errors.As(err, &pgError) {
+			if pgError.IntegrityViolation() && strings.Contains(pgError.Error(), "uk_users_email") {
+				return domain.ErrEmailAlreadyExists
+			}
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (r *repository) Delete(ctx context.Context, id int64) error {

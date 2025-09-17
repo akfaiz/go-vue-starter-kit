@@ -2,6 +2,10 @@
 
 A full-stack starter kit built with Go and Vue 3, featuring a modern architecture with clean separation of concerns, authentication, and a responsive UI.
 
+## 🌟 Demo
+
+Check out the live demo: **[https://go-vue-starter-kit.fly.dev](https://go-vue-starter-kit.fly.dev)**
+
 ## 🚀 Features
 
 ### Backend (Go)
@@ -35,8 +39,8 @@ A full-stack starter kit built with Go and Vue 3, featuring a modern architectur
 
 ## 📋 Prerequisites
 
-- Go 1.24+
-- Node.js 20+
+- Go 1.25+
+- Node.js 22+
 - PNPM (for frontend dependencies)
 - PostgreSQL
 - Docker (optional)
@@ -58,34 +62,7 @@ Copy the environment file and configure your settings:
 cp .env.example .env
 ```
 
-Update the `.env` file with your configuration:
-
-```env
-APP_NAME=GoVue
-APP_ENV=development
-APP_KEY=your_random_key
-APP_DEBUG=true
-SERVER_PORT=3000
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=govue
-
-JWT_ACCESS_SECRET=your_jwt_access_secret
-JWT_REFRESH_SECRET=your_jwt_refresh_secret
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=168h
-
-MAIL_DRIVER=smtp
-MAIL_HOST=localhost
-MAIL_PORT=1025
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_FROM_ADDRESS=test@example.com
-MAIL_FROM_NAME=GoVue
-```
+Update the `.env` file with your configuration, especially database and SMTP settings.
 
 ### 3. Database Setup
 
@@ -128,9 +105,6 @@ make web-build
 
 # Build backend with embedded frontend
 make build-embed
-
-# Run in development mode with hot reload
-make dev
 
 # Run in production mode
 make run
@@ -208,10 +182,10 @@ docker run -p 3000:3000 --env-file .env go-vue-starter-kit
 │   │       ├── middleware/ # HTTP middleware
 │   │       └── routes/   # Route definitions
 │   ├── domain/           # Business domain interfaces
-│   ├── gateway/          # External service gateways
 │   ├── hash/             # Hashing utilities
 │   ├── lang/             # Internationalization
 │   ├── model/            # Data models
+│   ├── provider/         # External service providers (e.g., SMTP)
 │   ├── repository/       # Data access layer
 │   ├── service/          # Business logic layer
 │   └── validator/        # Request validation
@@ -313,7 +287,8 @@ If you have any questions or need help, please open an issue on GitHub.
 ## 🙏 Acknowledgments
 
 - [Echo](https://echo.labstack.com/) - High performance, minimalist Go web framework
-- [Vue 3](https://vuejs.org/) - The progressive JavaScript framework
-- [Vuetify](https://vuetifyjs.com/) - Material Design component framework
 - [Uber FX](https://uber-go.github.io/fx/) - Dependency injection framework
 - [Bun](https://bun.uptrace.dev/) - SQL-first Golang ORM
+- [Vue 3](https://vuejs.org/) - The progressive JavaScript framework
+- [Vuetify](https://vuetifyjs.com/) - Material Design component framework
+- [Sneat](https://github.com/themeselection/sneat-vuetify-vuejs-admin-template-free) - Free Vue 3 Admin Template

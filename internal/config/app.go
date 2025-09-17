@@ -15,7 +15,7 @@ type App struct {
 
 func loadAppConfig() App {
 	return App{
-		Name:             env.GetString("APP_NAME", "gova"),
+		Name:             env.GetString("APP_NAME", "go-vue-starter-kit"),
 		Key:              env.MustGetString("APP_KEY"),
 		Env:              env.GetString("APP_ENV", "development"),
 		ApiBaseURL:       env.GetString("API_BASE_URL", "http://localhost:8080/api"),

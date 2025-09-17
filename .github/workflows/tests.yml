@@ -1,0 +1,68 @@
+name: Go Unit Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: Go Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Print Go env
+        run: |
+          go version
+          go env
+
+      - name: Run tests (Makefile if available)
+        run: |
+          set -euo pipefail
+          COVER=coverage.out
+          if grep -qE '^\s*test\.ci:' Makefile 2>/dev/null; then
+            echo "Using 'make test.ci'"
+            make test.ci
+          else
+            echo "Fallback: go test"
+            if command -v ginkgo >/dev/null 2>&1; then
+              ginkgo -r -p -race -cover -coverprofile="$COVER" ./...
+            else
+              go test ./... -race -covermode=atomic -coverprofile="$COVER" -count=1
+            fi
+          fi
+          go tool cover -func="$COVER" | tail -n1 || true
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: coverage.out
+          if-no-files-found: warn
