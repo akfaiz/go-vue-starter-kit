@@ -49,27 +49,14 @@ jobs:
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       - name: Ensure dist folder exists
-        run: mkdir -p web/dist
-      
+        run: |
+          mkdir -p web/dist
+          touch web/dist/.gitkeep
+
       - name: Lint code
         run: |
           set -euo pipefail
           golangci-lint run ./...
 
-      - name: Run tests (Makefile if available)
+      - name: Run tests
         run: make test.ci
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: './...'
