@@ -47,6 +47,9 @@ jobs:
           set -euo pipefail
           go install github.com/onsi/ginkgo/v2/ginkgo@latest
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Ensure dist folder exists
+        run: mkdir -p web/dist
       
       - name: Lint code
         run: |
@@ -54,21 +57,7 @@ jobs:
           golangci-lint run ./...
 
       - name: Run tests (Makefile if available)
-        run: |
-          set -euo pipefail
-          COVER=coverage.out
-          if grep -qE '^\s*test\.ci:' Makefile 2>/dev/null; then
-            echo "Using 'make test.ci'"
-            make test.ci
-          else
-            echo "Fallback: go test"
-            if command -v ginkgo >/dev/null 2>&1; then
-              ginkgo -r -p -race -cover -coverprofile="$COVER" ./...
-            else
-              go test ./... -race -covermode=atomic -coverprofile="$COVER" -count=1
-            fi
-          fi
-          go tool cover -func="$COVER" | tail -n1 || true
+        run: make test.ci
 
       - name: Upload coverage
         if: always()
@@ -77,3 +66,19 @@ jobs:
           name: go-coverage
           path: coverage.out
           if-no-files-found: warn
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: './...'
