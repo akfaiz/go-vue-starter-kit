@@ -45,6 +45,12 @@ export const routes = [
         component: () => import('@/pages/auth/reset-password.vue'),
       },
       {
+        path: 'verify-email',
+        name: 'verify-email',
+        meta: { requiresAuth: true },
+        component: () => import('@/pages/auth/verify-email.vue'),
+      },
+      {
         path: '/:pathMatch(.*)*',
         component: () => import('@/pages/[...error].vue'),
       },

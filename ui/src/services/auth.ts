@@ -1,8 +1,8 @@
 // src/services/auth.ts
 /* eslint-disable camelcase */
 
-import type { ApiEnvelope, ApiMessage } from './response'
 import { clearAuthTokens, setAuthTokens } from '@/utils/token'
+import type { ApiEnvelope, ApiMessage } from './response'
 
 /* ------------------------------- Types ----------------------------------- */
 
@@ -10,6 +10,7 @@ export interface User {
   id: number | string
   name: string
   email: string
+  email_verified_at?: string | null
   created_at?: string
   updated_at?: string
 }

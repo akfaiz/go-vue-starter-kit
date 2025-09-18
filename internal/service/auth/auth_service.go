@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/aarondl/opt/omit"
@@ -271,7 +272,7 @@ func (s *service) buildEmailResetPassword(user *domain.User, token string) *mail
 }
 
 func (s *service) buildEmailVerification(user *domain.User, token string) *mailgen.Builder {
-	url := s.cfg.App.FrontendBaseURL + "/verify-email?token=" + token + "&email=" + user.Email
+	url := s.cfg.App.FrontendBaseURL + "/verify-email?token=" + token + "&user_id=" + strconv.FormatInt(user.ID, 10)
 	return mailgen.New().
 		To(user.Email).
 		Subject("Verify Email Address").

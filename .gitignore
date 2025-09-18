@@ -42,8 +42,6 @@ ui/.env.production.local
 # ui/yarn.lock
 
 # ---- Build artifacts ----
-web/dist/
-dist/
 .tmp/
 .cache/
 .DS_Store

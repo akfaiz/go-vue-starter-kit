@@ -49,6 +49,8 @@ func (r *repository) FindOne(ctx context.Context, userID int64, tokenType domain
 }
 
 func (r *repository) Delete(ctx context.Context, userID int64, tokenType domain.TokenType) error {
-	_, err := r.db.NewDelete().Model((*model.UserToken)(nil)).Where("user_id = ? AND token_type = ?", userID, string(tokenType)).Exec(ctx)
+	_, err := r.db.NewDelete().Model((*model.UserToken)(nil)).
+		Where("user_id = ? AND token_type = ?", userID, string(tokenType)).
+		Exec(ctx)
 	return err
 }
