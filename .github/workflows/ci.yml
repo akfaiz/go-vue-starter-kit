@@ -28,7 +28,7 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           args: --timeout 5m run ./...
 
   test:
