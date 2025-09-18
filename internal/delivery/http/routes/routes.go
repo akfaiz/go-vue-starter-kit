@@ -60,6 +60,7 @@ func (rc RouteConfig) registerAPI() {
 			option.StripDefNamePrefix("Dto"),
 		),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+		option.WithServer("https://go-vue-starter-kit.fly.dev/", option.ServerDescription("Production server")),
 		option.WithServer(fmt.Sprintf("http://localhost:%d", rc.Config.Server.Port), option.ServerDescription("Local server")),
 	)
 	v1 := r.Group("/api/v1")

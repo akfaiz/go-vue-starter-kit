@@ -6,6 +6,8 @@ A full-stack starter kit built with Go and Vue 3, featuring a modern architectur
 
 Check out the live demo: **[https://go-vue-starter-kit.fly.dev](https://go-vue-starter-kit.fly.dev)**
 
+OpenAPI Docs: **[https://go-vue-starter-kit.fly.dev/docs](https://go-vue-starter-kit.fly.dev/docs)**
+
 ## 🚀 Features
 
 ### Backend (Go)
@@ -238,18 +240,6 @@ pnpm typecheck            # Run TypeScript type checking
 pnpm lint                 # Run ESLint
 ```
 
-## 📚 API Documentation
-
-The API follows RESTful conventions. Key endpoints include:
-
-- `GET /api/health` - Health check
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/logout` - User logout
-- `GET /api/profile` - Get user profile
-- `PUT /api/profile` - Update user profile
-
 ## 🔐 Authentication
 
 The application uses JWT-based authentication with:
@@ -267,10 +257,6 @@ go test ./...
 # Run frontend tests
 cd ui && pnpm test
 ```
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
