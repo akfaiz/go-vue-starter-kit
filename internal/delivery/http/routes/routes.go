@@ -60,6 +60,7 @@ func (rc RouteConfig) registerAPI() {
 			option.StripDefNamePrefix("Dto"),
 		),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+		option.WithServer("https://go-vue-starter-kit.fly.dev/", option.ServerDescription("Production server")),
 		option.WithServer(fmt.Sprintf("http://localhost:%d", rc.Config.Server.Port), option.ServerDescription("Local server")),
 	)
 	v1 := r.Group("/api/v1")
@@ -75,7 +76,7 @@ func (rc RouteConfig) registerAPI() {
 		option.Summary("User Registration"),
 		option.Description("Register a new user"),
 		option.Request(new(dto.RegisterRequest)),
-		option.Response(201, responseOf[any](nil)),
+		option.Response(201, responseOf(dto.TokenResponse{})),
 	)
 	auth.POST("/refresh-token", rc.AuthHandler.RefreshToken).With(
 		option.Summary("Refresh Token"),
@@ -107,11 +108,12 @@ func (rc RouteConfig) registerAPI() {
 		option.Response(200, responseOf[any](nil)),
 		option.Security("bearerAuth"),
 	)
-	auth.POST("/email/verify", rc.AuthHandler.VerifyEmail).With(
+	auth.POST("/email/verify", rc.AuthHandler.VerifyEmail, rc.AuthMiddleware).With(
 		option.Summary("Verify Email"),
 		option.Description("Verify the user's email using a valid token"),
 		option.Request(new(dto.VerifyEmailRequest)),
 		option.Response(200, responseOf[any](nil)),
+		option.Security("bearerAuth"),
 	)
 
 	profile := v1.Group("/profile", rc.AuthMiddleware).With(

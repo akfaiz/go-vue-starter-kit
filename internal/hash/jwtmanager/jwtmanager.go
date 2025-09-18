@@ -1,4 +1,4 @@
-package jwt
+package jwtmanager
 
 import (
 	"time"
@@ -17,7 +17,7 @@ type jwtManager struct {
 	refreshExpires time.Duration
 }
 
-func NewJWTManager(cfg config.JWT) domain.JWTManager {
+func New(cfg config.JWT) domain.JWTManager {
 	return &jwtManager{
 		accessSecret:   []byte(cfg.AccessSecret),
 		refreshSecret:  []byte(cfg.RefreshSecret),
@@ -44,10 +44,16 @@ func (j *jwtManager) GeneratePairToken(claims *domain.JWTClaims) (*domain.PairTo
 }
 
 func (j *jwtManager) GenerateAccessToken(claims *domain.JWTClaims) (string, error) {
+	if claims == nil {
+		return "", errors.WithStack(errdefs.ErrInternalServer("claims cannot be nil"))
+	}
 	return j.generateToken(claims, j.accessSecret, j.accessExpires)
 }
 
 func (j *jwtManager) GenerateRefreshToken(claims *domain.JWTClaims) (string, error) {
+	if claims == nil {
+		return "", errors.WithStack(errdefs.ErrInternalServer("claims cannot be nil"))
+	}
 	return j.generateToken(claims, j.refreshSecret, j.refreshExpires)
 }
 

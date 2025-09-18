@@ -1,37 +1,98 @@
 <script setup lang="ts">
-import type { RegisterRequest } from '@/services/auth'
-import { useAuthStore } from '@/stores/auth'
+import type { ResetPasswordRequest } from '@/services/auth'
+import { resetPassword, validatePasswordResetToken } from '@/services/auth'
 import type { FieldErrors } from '@/utils/errors'
 import { AppError } from '@/utils/errors'
 import logo from '@images/logo.svg?raw'
 
-const auth = useAuthStore()
 const router = useRouter()
 
-const form = reactive<RegisterRequest>({
-  name: '',
+const form = reactive<ResetPasswordRequest>({
+  token: '',
   email: '',
   password: '',
   password_confirmation: '',
 })
 
-const isPasswordVisible = ref(false)
+const alert = ref({
+  type: 'success' as 'success' | 'error',
+  message: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
+  show: false,
+})
+
 const loading = ref(false)
+const isPasswordVisible = ref(false)
 const validationErrors = ref<FieldErrors>({})
+const tokenValidated = ref(false)
+
+onMounted(async () => {
+  const url = new URL(window.location.href)
+  const email = url.searchParams.get('email') || ''
+  const token = url.searchParams.get('token') || ''
+  if (!email || !token) {
+    alert.value = {
+      type: 'error',
+      message: 'Invalid password reset link. Please request a new link.',
+      show: true,
+    }
+
+    return
+  }
+
+  form.email = email
+  form.token = token
+
+  try {
+    await validatePasswordResetToken(token, email)
+    tokenValidated.value = true
+  }
+  catch (e) {
+    if (e instanceof AppError) {
+      alert.value = {
+        type: 'error',
+        message: e.message,
+        show: true,
+      }
+    }
+    else {
+      throw e
+    }
+  }
+})
 
 const handleSubmit = async () => {
   try {
-    loading.value = true
+    alert.value.show = false
     validationErrors.value = {}
-    await auth.register(form)
-    loading.value = false
+    loading.value = true
 
-    router.replace({ path: '/dashboard' })
+    const msg = await resetPassword(form)
+
+    alert.value = {
+      type: 'success',
+      message: msg.message,
+      show: true,
+    }
+    loading.value = false
+    router.replace({ path: '/login' })
   }
   catch (e) {
     loading.value = false
-    if (e instanceof AppError && e.isValidation)
-      validationErrors.value = e.fieldErrors || {}
+    if (e instanceof AppError) {
+      if (e.isValidation) {
+        validationErrors.value = e.fieldErrors || {}
+      }
+      else {
+        alert.value = {
+          type: 'error',
+          message: e.message,
+          show: true,
+        }
+      }
+    }
+    else {
+      throw e
+    }
   }
 }
 </script>
@@ -39,7 +100,7 @@ const handleSubmit = async () => {
 <template>
   <div class="auth-wrapper d-flex align-center justify-center pa-4">
     <div class="position-relative my-sm-16">
-      <!-- 👉 Auth card -->
+      <!-- 👉 Auth Card -->
       <VCard
         class="auth-card"
         max-width="460"
@@ -61,40 +122,40 @@ const handleSubmit = async () => {
           </RouterLink>
         </VCardItem>
 
-        <VCardText class="text-center">
+        <VCardText>
           <h4 class="text-h5 mb-1">
-            Create an account
+            Reset password
           </h4>
           <p class="mb-0">
-            Enter your details below to create your account
+            Please enter your new password below
           </p>
+        </VCardText>
+
+        <VCardText
+          v-if="alert.show"
+          class="pt-0"
+        >
+          <VAlert
+            :color="alert.type === 'success' ? 'success' : 'error'"
+            variant="text"
+            :text="alert.message"
+          />
         </VCardText>
 
         <VCardText>
           <VForm @submit.prevent="handleSubmit">
             <VRow>
-              <!-- Name -->
-              <VCol cols="12">
-                <VTextField
-                  v-model="form.name"
-                  autofocus
-                  label="Name"
-                  placeholder="John Doe"
-                  :error-messages="validationErrors.name"
-                />
-              </VCol>
               <!-- email -->
               <VCol cols="12">
                 <VTextField
                   v-model="form.email"
+                  autofocus
                   label="Email"
                   type="email"
-                  placeholder="johndoe@email.com"
-                  :error-messages="validationErrors.email"
+                  disabled
                 />
               </VCol>
 
-              <!-- password -->
               <VCol cols="12">
                 <VTextField
                   v-model="form.password"
@@ -108,7 +169,6 @@ const handleSubmit = async () => {
                 />
               </VCol>
 
-              <!-- confirm password -->
               <VCol cols="12">
                 <VTextField
                   v-model="form.password_confirmation"
@@ -126,25 +186,11 @@ const handleSubmit = async () => {
                 <VBtn
                   block
                   type="submit"
-                  class="mt-6"
                   :loading="loading"
+                  :disabled="!tokenValidated"
                 >
-                  Sign up
+                  Reset Password
                 </VBtn>
-              </VCol>
-
-              <!-- login instead -->
-              <VCol
-                cols="12"
-                class="text-center text-base"
-              >
-                <span>Already have an account?</span>
-                <RouterLink
-                  class="text-primary ms-1"
-                  to="/login"
-                >
-                  Sign in instead
-                </RouterLink>
               </VCol>
             </VRow>
           </VForm>

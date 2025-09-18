@@ -23,6 +23,7 @@ func (h *HealthCheckHandler) HealthCheck(c echo.Context) error {
 			"status":  "error",
 		})
 	}
+
 	return c.JSON(200, map[string]string{
 		"message": "Application is healthy",
 		"status":  "ok",

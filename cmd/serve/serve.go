@@ -9,10 +9,10 @@ import (
 	"github.com/akfaiz/go-vue-starter-kit/internal/config"
 	"github.com/akfaiz/go-vue-starter-kit/internal/db"
 	deliveryhttp "github.com/akfaiz/go-vue-starter-kit/internal/delivery/http"
-	"github.com/akfaiz/go-vue-starter-kit/internal/gateway"
 	"github.com/akfaiz/go-vue-starter-kit/internal/hash"
 	"github.com/akfaiz/go-vue-starter-kit/internal/lang"
 	"github.com/akfaiz/go-vue-starter-kit/internal/logger"
+	"github.com/akfaiz/go-vue-starter-kit/internal/provider"
 	"github.com/akfaiz/go-vue-starter-kit/internal/repository"
 	"github.com/akfaiz/go-vue-starter-kit/internal/service"
 	"github.com/labstack/echo/v4"
@@ -59,7 +59,7 @@ func appOptions(cfg config.Config) []fx.Option {
 		),
 		repository.Module,
 		hash.Module,
-		gateway.Module,
+		provider.Module,
 		service.Module,
 		deliveryhttp.Module,
 		fx.Invoke(httpServerLifecycle),

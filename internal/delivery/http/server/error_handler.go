@@ -13,12 +13,15 @@ import (
 const ContentTypeProblemJSON = "application/problem+json"
 
 func customHTTPErrorHandler(err error, c echo.Context) {
-	if c.Response().Committed {
+	res := c.Response()
+	if res.Committed {
 		return // If the response is already committed, do nothing
 	}
 
+	res.Header().Set(echo.HeaderContentType, ContentTypeProblemJSON)
+
 	instance := c.Path()
-	requestID, ok := c.Response().Header()[echo.HeaderXRequestID]
+	requestID, ok := res.Header()[echo.HeaderXRequestID]
 	if ok && len(requestID) > 0 {
 		instance = requestID[0]
 	}
@@ -26,8 +29,10 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	// Check if the error is a custom application error
 	var appError *errdefs.AppError
 	if errors.As(err, &appError) {
-		c.JSON(appError.Status, appError.WithInstance(instance))
-		c.Response().Header().Set(echo.HeaderContentType, ContentTypeProblemJSON)
+		err := c.JSON(appError.Status, appError.WithInstance(instance))
+		if err != nil {
+			c.Logger().Error(err)
+		}
 		return
 	}
 
@@ -38,8 +43,10 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 			WithErrors(validationErr).
 			WithCause(err).
 			WithInstance(instance)
-		c.JSON(appError.Status, appError)
-		c.Response().Header().Set(echo.HeaderContentType, ContentTypeProblemJSON)
+		err := c.JSON(appError.Status, appError)
+		if err != nil {
+			c.Logger().Error(err)
+		}
 		return
 	}
 
@@ -52,6 +59,8 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	} else {
 		appError = errdefs.ErrInternalServer()
 	}
-	c.JSON(code, appError.WithInstance(instance))
-	c.Response().Header().Set(echo.HeaderContentType, ContentTypeProblemJSON)
+	err = c.JSON(code, appError.WithInstance(instance))
+	if err != nil {
+		c.Logger().Error(err)
+	}
 }

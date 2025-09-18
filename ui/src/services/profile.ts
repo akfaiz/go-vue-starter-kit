@@ -24,8 +24,10 @@ export async function changePassword(payload: ChangePasswordRequest): Promise<Ap
   return data
 }
 
-export async function deleteAccount(): Promise<ApiMessage> {
-  const { data } = await $api.delete<ApiMessage>('/v1/profile')
+export async function deleteAccount(password: string): Promise<ApiMessage> {
+  const { data } = await $api.delete<ApiMessage>('/v1/profile', {
+    data: { password },
+  })
 
   // On successful account deletion, clear tokens to force re-login
   clearAuthTokens()

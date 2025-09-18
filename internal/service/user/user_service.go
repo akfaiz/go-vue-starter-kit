@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aarondl/opt/omit"
@@ -35,16 +36,27 @@ func (s *service) UpdateProfile(ctx context.Context, id int64, user *domain.User
 		return err
 	}
 
-	update := &domain.UserUpdate{
-		Name:  omit.From(user.Name),
-		Email: omit.From(user.Email),
+	update := &domain.UserUpdate{}
+	if oldUser.Name != user.Name {
+		update.Name = omit.From(user.Name)
 	}
 	if oldUser.Email != user.Email {
 		var t *time.Time
 		update.EmailVerifiedAt = omitnull.FromPtr(t)
+		update.Email = omit.From(user.Email)
+	}
+	if update.IsEmpty() {
+		return nil
 	}
 
-	return s.userRepo.Update(ctx, id, update)
+	if err := s.userRepo.Update(ctx, id, update); err != nil {
+		if errors.Is(err, domain.ErrEmailAlreadyExists) {
+			return validator.NewError("email", "Email already exists")
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) ChangePassword(ctx context.Context, id int64, currentPassword, newPassword string) error {

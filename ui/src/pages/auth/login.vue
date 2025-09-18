@@ -1,36 +1,35 @@
 <script setup lang="ts">
+import type { LoginRequest } from '@/services/auth'
 import { useAuthStore } from '@/stores/auth'
+import type { FieldErrors } from '@/utils/errors'
 import { AppError } from '@/utils/errors'
 import logo from '@images/logo.svg?raw'
 
 const auth = useAuthStore()
+const router = useRouter()
 
-const form = ref({
+const form = reactive<LoginRequest>({
   email: '',
   password: '',
-  remember: false,
 })
 
 const isPasswordVisible = ref(false)
-const validationErrors = ref<Record<string, string>>({})
+const validationErrors = ref<FieldErrors>({})
 const loading = ref(false)
 
 const handleSubmit = async () => {
   try {
     loading.value = true
     validationErrors.value = {}
-    await auth.login({
-      email: form.value.email,
-      password: form.value.password,
-    })
+    await auth.login(form)
     loading.value = false
 
-    window.location.href = '/dashboard'
+    router.replace({ path: '/dashboard' })
   }
   catch (e) {
     loading.value = false
     if (e instanceof AppError && e.isValidation)
-      validationErrors.value = e.fieldMap || {}
+      validationErrors.value = e.fieldErrors || {}
     else
       throw e
   }
@@ -62,7 +61,7 @@ const handleSubmit = async () => {
           </RouterLink>
         </VCardItem>
 
-        <VCardText>
+        <VCardText class="text-center">
           <h4 class="text-h5 mb-1">
             Log in to your account
           </h4>
@@ -101,10 +100,7 @@ const handleSubmit = async () => {
 
                 <!-- remember me checkbox -->
                 <div class="d-flex align-center justify-space-between flex-wrap my-6">
-                  <VCheckbox
-                    v-model="form.remember"
-                    label="Remember me"
-                  />
+                  <VCheckbox label="Remember me" />
                   <RouterLink
                     class="text-primary ms-1 d-inline-block text-body-1"
                     to="/forgot-password"

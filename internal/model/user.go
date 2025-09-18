@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/akfaiz/go-vue-starter-kit/internal/domain"
+	"github.com/uptrace/bun"
 )
 
 type User struct {
@@ -26,4 +27,25 @@ func (u *User) ToDomain() *domain.User {
 		CreatedAt:       u.CreatedAt,
 		UpdatedAt:       u.UpdatedAt,
 	}
+}
+
+func ApplyUserUpdate(query *bun.UpdateQuery, update *domain.UserUpdate) *bun.UpdateQuery {
+	if update.Name.IsValue() {
+		query = query.Set("name = ?", update.Name.MustGet())
+	}
+	if update.Email.IsValue() {
+		query = query.Set("email = ?", update.Email.MustGet())
+	}
+	if update.Password.IsValue() {
+		query = query.Set("password = ?", update.Password.MustGet())
+	}
+	if update.EmailVerifiedAt.IsValue() {
+		if update.EmailVerifiedAt.IsNull() {
+			query = query.Set("email_verified_at = NULL")
+		} else {
+			t := update.EmailVerifiedAt.MustGet()
+			query = query.Set("email_verified_at = ?", t)
+		}
+	}
+	return query.Set("updated_at = NOW()")
 }

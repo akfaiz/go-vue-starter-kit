@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/aarondl/opt/omit"
@@ -44,20 +45,24 @@ func NewService(
 	}
 }
 
-func (s *service) Register(ctx context.Context, user *domain.User) error {
+func (s *service) Register(ctx context.Context, user *domain.User) (*domain.PairToken, error) {
 	hashedPassword, err := s.passwordHasher.Hash(user.Password)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	user.Password = hashedPassword
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		if errors.Is(err, domain.ErrEmailAlreadyExists) {
-			return validator.NewError("email", "Email already registered")
+			return nil, validator.NewError("email", "Email already registered")
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return s.jwtManager.GeneratePairToken(&domain.JWTClaims{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	})
 }
 
 func (s *service) Login(ctx context.Context, email, password string) (*domain.PairToken, error) {
@@ -185,8 +190,8 @@ func (s *service) SendVerificationEmail(ctx context.Context, email string) error
 	return nil
 }
 
-func (s *service) VerifyEmail(ctx context.Context, token string, email string) error {
-	user, err := s.userRepo.FindByEmail(ctx, email)
+func (s *service) VerifyEmail(ctx context.Context, token string, userID int64) error {
+	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -225,11 +230,17 @@ func (s *service) VerifyEmail(ctx context.Context, token string, email string) e
 func (s *service) validateResetPassword(ctx context.Context, token, email string) (*domain.User, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
+		if errors.Is(err, domain.ErrResourceNotFound) {
+			return nil, errdefs.ErrBadRequest(i18n.T(ctx, "passwords.user"))
+		}
 		return nil, err
 	}
 
 	prt, err := s.userTokenRepo.FindOne(ctx, user.ID, domain.TokenTypeResetPassword)
 	if err != nil {
+		if errors.Is(err, domain.ErrResourceNotFound) {
+			return nil, errdefs.ErrBadRequest(i18n.T(ctx, "passwords.token"))
+		}
 		return nil, err
 	}
 
@@ -261,7 +272,7 @@ func (s *service) buildEmailResetPassword(user *domain.User, token string) *mail
 }
 
 func (s *service) buildEmailVerification(user *domain.User, token string) *mailgen.Builder {
-	url := s.cfg.App.FrontendBaseURL + "/verify-email?token=" + token + "&email=" + user.Email
+	url := s.cfg.App.FrontendBaseURL + "/verify-email?token=" + token + "&user_id=" + strconv.FormatInt(user.ID, 10)
 	return mailgen.New().
 		To(user.Email).
 		Subject("Verify Email Address").

@@ -1,8 +1,8 @@
 // src/services/auth.ts
 /* eslint-disable camelcase */
 
-import type { ApiEnvelope, ApiMessage } from './response'
 import { clearAuthTokens, setAuthTokens } from '@/utils/token'
+import type { ApiEnvelope, ApiMessage } from './response'
 
 /* ------------------------------- Types ----------------------------------- */
 
@@ -10,13 +10,15 @@ export interface User {
   id: number | string
   name: string
   email: string
+  email_verified_at?: string | null
   created_at?: string
   updated_at?: string
 }
 
-export type LoginRequest =
-  | { email: string; password: string }
-  | { username: string; password: string }
+export interface LoginRequest {
+  email: string
+  password: string
+}
 
 export interface RegisterRequest {
   name: string
@@ -25,12 +27,14 @@ export interface RegisterRequest {
   password_confirmation: string
 }
 
-interface LoginData {
-  access_token: string
-  refresh_token: string | null
+export interface ResetPasswordRequest {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
 }
 
-export interface LoginResult {
+export interface TokenResponse {
   access_token: string
   refresh_token: string | null
 }
@@ -38,8 +42,8 @@ export interface LoginResult {
 /* ----------------------------- Services ---------------------------------- */
 
 /** /login -> { status, message, data: { access_token, refresh_token } } */
-export async function login(payload: LoginRequest): Promise<LoginResult> {
-  const res = await $api.post<ApiEnvelope<LoginData>>('/v1/auth/login', payload)
+export async function login(payload: LoginRequest): Promise<TokenResponse> {
+  const res = await $api.post<ApiEnvelope<TokenResponse>>('/v1/auth/login', payload)
 
   const { access_token, refresh_token } = res.data.data ?? {}
 
@@ -48,14 +52,21 @@ export async function login(payload: LoginRequest): Promise<LoginResult> {
 
   setAuthTokens(access_token, refresh_token ?? '')
 
-  return { access_token, refresh_token: refresh_token ?? null }
+  return { access_token, refresh_token }
 }
 
 /** /register -> { status, message } (no tokens) */
-export async function register(payload: RegisterRequest): Promise<ApiMessage> {
-  const { data } = await $api.post<ApiMessage>('/v1/auth/register', payload)
+export async function register(payload: RegisterRequest): Promise<TokenResponse> {
+  const { data } = await $api.post<ApiEnvelope<TokenResponse>>('/v1/auth/register', payload)
 
-  return data
+  const { access_token, refresh_token } = data.data ?? {}
+
+  if (!access_token)
+    throw new Error('Registration failed: access_token missing in response')
+
+  setAuthTokens(access_token, refresh_token ?? '')
+
+  return { access_token, refresh_token }
 }
 
 /** /me -> { status, data: User } */
@@ -75,6 +86,30 @@ export async function logout(): Promise<void> {
 
 export async function sendPasswordResetEmail(email: string): Promise<ApiMessage> {
   const { data } = await $api.post<ApiMessage>('/v1/auth/forgot-password', { email })
+
+  return data
+}
+
+export async function validatePasswordResetToken(token: string, email: string): Promise<ApiMessage> {
+  const { data } = await $api.post<ApiMessage>('/v1/auth/validate-reset-password', { token, email })
+
+  return data
+}
+
+export async function resetPassword(payload: ResetPasswordRequest): Promise<ApiMessage> {
+  const { data } = await $api.post<ApiMessage>('/v1/auth/reset-password', payload)
+
+  return data
+}
+
+export async function sendEmailVerification(): Promise<ApiMessage> {
+  const { data } = await $api.post<ApiMessage>('/v1/auth/email/send-verification')
+
+  return data
+}
+
+export async function verifyEmail(token: string, user_id: number): Promise<ApiMessage> {
+  const { data } = await $api.post<ApiMessage>('/v1/auth/email/verify', { token, user_id })
 
   return data
 }

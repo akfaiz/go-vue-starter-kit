@@ -39,6 +39,18 @@ export const routes = [
         component: () => import('@/pages/auth/forgot-password.vue'),
       },
       {
+        path: 'reset-password',
+        name: 'reset-password',
+        meta: { guestOnly: true },
+        component: () => import('@/pages/auth/reset-password.vue'),
+      },
+      {
+        path: 'verify-email',
+        name: 'verify-email',
+        meta: { requiresAuth: true },
+        component: () => import('@/pages/auth/verify-email.vue'),
+      },
+      {
         path: '/:pathMatch(.*)*',
         component: () => import('@/pages/[...error].vue'),
       },

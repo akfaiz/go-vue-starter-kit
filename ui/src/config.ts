@@ -5,7 +5,7 @@ export const appConfig = (() => {
     // Fallback for dev with Vite server (no /env.js)
     return {
       env: import.meta.env.MODE,
-      apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+      apiBaseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
     }
   }
 

@@ -33,6 +33,13 @@ func (ve ValidationError) Errors() []FieldError {
 	return ve
 }
 
+func (ve ValidationError) First() *FieldError {
+	if len(ve) == 0 {
+		return nil
+	}
+	return &ve[0]
+}
+
 func (ve *ValidationError) Fields() []string {
 	fields := make([]string, len(*ve))
 	for i, err := range *ve {

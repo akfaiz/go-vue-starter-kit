@@ -9,10 +9,12 @@ bin/
 *.out
 tmp/
 
-# Go coverage
+# Test binary, coverage, and reports
 *.cover
 *.coverprofile
 coverage.txt
+coverage.html
+junit.xml
 
 # Environment files
 .env
@@ -40,8 +42,6 @@ ui/.env.production.local
 # ui/yarn.lock
 
 # ---- Build artifacts ----
-web/dist/
-dist/
 .tmp/
 .cache/
 .DS_Store

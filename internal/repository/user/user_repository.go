@@ -68,26 +68,19 @@ func (r *repository) FindByID(ctx context.Context, id int64) (*domain.User, erro
 
 func (r *repository) Update(ctx context.Context, id int64, data *domain.UserUpdate) error {
 	query := r.db.NewUpdate().Model((*model.User)(nil)).Where("id = ?", id)
-	if data.Name.IsValue() {
-		query = query.Set("name = ?", data.Name)
-	}
-	if data.Email.IsValue() {
-		query = query.Set("email = ?", data.Email)
-	}
-	if data.Password.IsValue() {
-		query = query.Set("password = ?", data.Password)
-	}
-	if data.EmailVerifiedAt.IsValue() {
-		if data.EmailVerifiedAt.IsNull() {
-			query = query.Set("email_verified_at = NULL")
-		} else {
-			t := data.EmailVerifiedAt.MustGet()
-			query = query.Set("email_verified_at = ?", t)
-		}
-	}
-	query = query.Set("updated_at = NOW()")
+	query = model.ApplyUserUpdate(query, data)
 	_, err := query.Exec(ctx)
-	return err
+	if err != nil {
+		var pgError pgdriver.Error
+		if errors.As(err, &pgError) {
+			if pgError.IntegrityViolation() && strings.Contains(pgError.Error(), "uk_users_email") {
+				return domain.ErrEmailAlreadyExists
+			}
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (r *repository) Delete(ctx context.Context, id int64) error {

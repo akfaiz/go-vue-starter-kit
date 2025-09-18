@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { sendPasswordResetEmail } from '@/services/auth'
-import type { FieldErrors } from '@/utils/errors'
+import { sendEmailVerification, verifyEmail } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import { AppError } from '@/utils/errors'
 import logo from '@images/logo.svg?raw'
 
-const form = ref({
-  email: '',
-})
+const auth = useAuthStore()
+const router = useRouter()
 
 const alert = ref({
   type: 'success' as 'success' | 'error',
@@ -15,19 +14,17 @@ const alert = ref({
 })
 
 const loading = ref(false)
-const validationErrors = ref<FieldErrors>({})
 
-const handleSubmit = async () => {
+const handleSendEmailVerification = async () => {
   try {
     alert.value.show = false
-    validationErrors.value = {}
     loading.value = true
 
-    const msg = await sendPasswordResetEmail(form.value.email)
+    await sendEmailVerification()
 
     alert.value = {
       type: 'success',
-      message: msg.message,
+      message: 'A new verification link has been sent to the email address you provided during registration.',
       show: true,
     }
     loading.value = false
@@ -35,15 +32,10 @@ const handleSubmit = async () => {
   catch (e) {
     loading.value = false
     if (e instanceof AppError) {
-      if (e.isValidation) {
-        validationErrors.value = e.fieldErrors || {}
-      }
-      else {
-        alert.value = {
-          type: 'error',
-          message: e.message,
-          show: true,
-        }
+      alert.value = {
+        type: 'error',
+        message: e.message,
+        show: true,
       }
     }
     else {
@@ -51,6 +43,52 @@ const handleSubmit = async () => {
     }
   }
 }
+
+const handleLogout = async () => {
+  await auth.logout()
+  router.replace({ path: '/login' })
+}
+
+onMounted(async () => {
+  if (auth.user?.email_verified_at)
+    router.replace({ path: '/dashboard' })
+  const url = new URL(window.location.href)
+  const token = url.searchParams.get('token') || ''
+  const userId = url.searchParams.get('user_id') || ''
+  if (!token || !userId) {
+    return
+  }
+  const userIDNum = Number(userId)
+  if (isNaN(userIDNum)) {
+    return
+  }
+  try {
+    loading.value = true
+    await verifyEmail(token, userIDNum)
+    alert.value = {
+      type: 'success',
+      message: 'Your email has been successfully verified. You can now access the dashboard.',
+      show: true,
+    }
+    // Refresh user data
+    await auth.fetchMe(true)
+    loading.value = false
+    router.replace({ path: '/dashboard' })
+  }
+  catch (e) {
+    loading.value = false
+    if (e instanceof AppError) {
+      alert.value = {
+        type: 'error',
+        message: e.message,
+        show: true,
+      }
+    }
+    else {
+      throw e
+    }
+  }
+})
 </script>
 
 <template>
@@ -80,10 +118,10 @@ const handleSubmit = async () => {
 
         <VCardText class="text-center">
           <h4 class="text-h5 mb-1">
-            Forgot password
+            Verify Email
           </h4>
           <p class="mb-0">
-            Enter your email to receive a password reset link
+            Please verify your email address by clicking on the link we just emailed to you.
           </p>
         </VCardText>
 
@@ -99,48 +137,27 @@ const handleSubmit = async () => {
         </VCardText>
 
         <VCardText>
-          <VForm @submit.prevent="handleSubmit">
-            <VRow>
-              <!-- email -->
-              <VCol cols="12">
-                <VTextField
-                  v-model="form.email"
-                  autofocus
-                  label="Email"
-                  type="email"
-                  placeholder="johndoe@email.com"
-                  :error-messages="validationErrors.email"
-                />
-              </VCol>
-
-              <!-- password -->
-
+          <VRow>
               <VCol cols="12">
                 <VBtn
                   block
-                  type="submit"
                   :loading="loading"
+                  @click="handleSendEmailVerification"  
                 >
-                  Email password reset link
+                  Resend Verification Email
                 </VBtn>
               </VCol>
 
               <VCol
                 cols="12"
                 class="text-body-1 text-center"
+                @click="handleLogout"
               >
-                <span class="d-inline-block">
-                  Or, return to
-                </span>
-                <RouterLink
-                  class="text-primary ms-1 d-inline-block text-body-1"
-                  to="/login"
-                >
-                  Log in
-                </RouterLink>
+                <VBtn variant="text">
+                  Log out
+                </VBtn>
               </VCol>
             </VRow>
-          </VForm>
         </VCardText>
       </VCard>
     </div>

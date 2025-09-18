@@ -75,8 +75,10 @@ export const useAuthStore = defineStore('auth', {
       return this.fetchMe(true) // refresh current user
     },
 
-    async register(payload: RegisterRequest) {
-      return registerSvc(payload) // { status, message }
+    async register(payload: RegisterRequest): Promise<User | null> {
+      await registerSvc(payload) // tokens set by service
+
+      return this.fetchMe(true) // refresh current user
     },
 
     async logout(): Promise<void> {

@@ -17,6 +17,8 @@ export interface ProblemDetails {
   errors?: FieldError[]
 }
 
+export type FieldErrors = Record<string, string | string[]>
+
 /** Normalized app error you can safely throw/catch in UI code */
 export class AppError extends Error {
   name = 'AppError'
@@ -28,7 +30,7 @@ export class AppError extends Error {
   problem?: ProblemDetails
 
   /** Field -> list of messages (for form binding) */
-  fieldMap: Record<string, string>
+  fieldErrors: FieldErrors = {}
   isValidation: boolean
   isNetwork: boolean
   isTimeout: boolean
@@ -39,7 +41,7 @@ export class AppError extends Error {
     type?: string
     instance?: string
     problem?: ProblemDetails
-    fieldMap?: Record<string, string>
+    fieldErrors?: FieldErrors
     isValidation?: boolean
     isNetwork?: boolean
     isTimeout?: boolean
@@ -50,7 +52,7 @@ export class AppError extends Error {
     this.type = init.type
     this.instance = init.instance
     this.problem = init.problem
-    this.fieldMap = init.fieldMap ?? {}
+    this.fieldErrors = init.fieldErrors ?? {}
     this.isValidation = !!init.isValidation
     this.isNetwork = !!init.isNetwork
     this.isTimeout = !!init.isTimeout
@@ -70,8 +72,8 @@ function isProblemDetails(x: unknown): x is ProblemDetails {
   )
 }
 
-function buildFieldMap(errors?: FieldError[]): Record<string, string> {
-  const map: Record<string, string> = {}
+function buildFieldErrors(errors?: FieldError[]): FieldErrors {
+  const map: FieldErrors = {}
   if (!errors?.length)
     return map
   for (const e of errors) {
@@ -105,11 +107,11 @@ export function toAppError(err: unknown): AppError {
     if (isProblemDetails(ax.response?.data)) {
       const p = ax.response!.data as ProblemDetails
       const isValidation = (status === 422) || !!p.errors?.length
-      const fieldMap = buildFieldMap(p.errors)
+      const fieldErrors = buildFieldErrors(p.errors)
 
       const message
-        = p.title
-        || p.detail
+        = p.detail
+        || p.title
         || (isValidation ? 'Validation failed' : `Request failed with status ${status ?? 'unknown'}`)
 
       return new AppError({
@@ -118,7 +120,7 @@ export function toAppError(err: unknown): AppError {
         type: p.type,
         instance: p.instance,
         problem: p,
-        fieldMap,
+        fieldErrors,
         isValidation,
         isNetwork: net,
         isTimeout: timeout,
@@ -166,7 +168,7 @@ export function isValidationError(e: unknown): e is AppError {
 /** Get first error message for a given field (e.g., "email") */
 export function getFieldError(e: unknown, field: string): string | undefined {
   const app = toAppError(e)
-  const list = app.fieldMap[field]
+  const list = app.fieldErrors[field]
 
   return list?.[0]
 }
@@ -175,7 +177,7 @@ export function getFieldError(e: unknown, field: string): string | undefined {
 export function toFirstFieldErrorMap(e: unknown): Record<string, string> {
   const app = toAppError(e)
   const out: Record<string, string> = {}
-  for (const [k, v] of Object.entries(app.fieldMap)) {
+  for (const [k, v] of Object.entries(app.fieldErrors)) {
     if (v.length)
       out[k] = v[0]
   }
@@ -186,9 +188,9 @@ export function toFirstFieldErrorMap(e: unknown): Record<string, string> {
 /** Collect human-friendly messages for toast/snackbar */
 export function summarizeError(e: unknown): string {
   const app = toAppError(e)
-  if (app.isValidation && Object.keys(app.fieldMap).length) {
+  if (app.isValidation && Object.keys(app.fieldErrors).length) {
     // e.g., "Email already registered"
-    const first = Object.values(app.fieldMap)[0]?.[0]
+    const first = Object.values(app.fieldErrors)[0]?.[0]
     if (first)
       return first
   }

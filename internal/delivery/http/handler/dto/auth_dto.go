@@ -36,15 +36,15 @@ type SendForgotPasswordEmailRequest struct {
 }
 
 type ResetPasswordRequest struct {
-	Token                   string `json:"token" validate:"required" label:"Token"`
-	Email                   string `json:"email" validate:"required|email" label:"Email"`
-	NewPassword             string `json:"new_password" validate:"required|min:8" label:"New Password"`
-	NewPasswordConfirmation string `json:"new_password_confirmation" validate:"required|eq_field:NewPassword" label:"New Password Confirmation"`
+	Token                string `json:"token" validate:"required" label:"Token"`
+	Email                string `json:"email" validate:"required|email" label:"Email"`
+	Password             string `json:"password" validate:"required|min:8" label:"Password"`
+	PasswordConfirmation string `json:"password_confirmation" validate:"required|eq_field:Password" label:"Confirm Password"`
 }
 
 type VerifyEmailRequest struct {
-	Token string `json:"token" validate:"required" label:"Token"`
-	Email string `json:"email" validate:"required|email" label:"Email"`
+	Token  string `json:"token" validate:"required" label:"Token"`
+	UserID int64  `json:"user_id" validate:"required" label:"User ID"`
 }
 
 type TokenResponse struct {

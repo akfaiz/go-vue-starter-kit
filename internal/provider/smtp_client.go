@@ -1,4 +1,4 @@
-package gateway
+package provider
 
 import (
 	"context"
@@ -77,6 +77,7 @@ func (m *smtpMailer) Send(ctx context.Context, builder *mailgen.Builder) error {
 		}
 	}
 	msg.Subject(message.Subject())
+	msg.SetBodyString(mail.TypeTextPlain, message.PlainText())
 	msg.SetBodyString(mail.TypeTextHTML, message.HTML())
 
 	if err := m.client.DialAndSendWithContext(ctx, msg); err != nil {
